@@ -1,29 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-const API_URL = "http://localhost:5174";
+import { useTransactions } from "@/context/TransactionsContext";
 
 export default function FinanceStats() {
-	const [stats, setStats] = useState({
-		totalIncome: 0,
-		totalExpense: 0,
-		balance: 0
-	});
+	const { transactions } = useTransactions();
 
-	useEffect(() => {
-		const token = localStorage.getItem("token");
-		if (!token) return;
+	const totalIncome = transactions
+		.filter(t => t.type === 'income')
+		.reduce((sum, t) => sum + t.amount, 0);
 
-		fetch(`${API_URL}/transactions/stats`, {
-			headers: {
-				Authorization: `Bearer ${token}`
-			},
-			cache: "no-store"
-		})
-			.then(res => res.json())
-			.then(setStats);
-	}, []);
+	const totalExpense = transactions
+		.filter(t => t.type === 'expense')
+		.reduce((sum, t) => sum + t.amount, 0);
+
+	const balance = totalIncome - totalExpense;
 
 	return (
 		<div style={{
@@ -31,9 +21,9 @@ export default function FinanceStats() {
 			gap: 20,
 			marginBottom: 40
 		}}>
-			<Stat title="Income" value={stats.totalIncome} color="#16a34a" />
-			<Stat title="Expense" value={stats.totalExpense} color="#dc2626" />
-			<Stat title="Balance" value={stats.balance} color="#2563eb" />
+			<Stat title="Income" value={totalIncome} color="#16a34a" />
+			<Stat title="Expense" value={totalExpense} color="#dc2626" />
+			<Stat title="Balance" value={balance} color="#2563eb" />
 		</div>
 	);
 }

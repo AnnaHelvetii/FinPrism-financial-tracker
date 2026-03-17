@@ -1,38 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-const API_URL = "http://localhost:5174";
+import { useState } from "react";
+import { useTransactions } from "@/context/TransactionsContext";
 
 export default function TransactionsTable() {
-	const [transactions, setTransactions] = useState<any[]>([]);
 	const [month, setMonth] = useState("");
+	const { transactions, remove, loading, error } = useTransactions();
 
-	useEffect(() => {
-		loadTransactions();
-	}, [month]);
+	const filteredTransactions = month
+		? transactions.filter(t => t.date.startsWith(month))
+		: transactions;
 
-	async function loadTransactions() {
-		const token = localStorage.getItem("token");
-		if (!token) return;
+	if (loading) {
+		return <div>Loading...</div>;
+	}
 
-		const url = month
-			? `${API_URL}/transactions?month=${month}`
-			: `${API_URL}/transactions`;
-
-		const res = await fetch(url, {
-			headers: {
-				Authorization: `Bearer ${token}`
-			},
-			cache: "no-store"
-		});
-
-		const data = await res.json();
-		setTransactions(data);
+	if (error) {
+		return <div style={{ color: "red" }}>{error}</div>;
 	}
 
 	return (
-		<div style={{ marginTop: 40 }}>
+		<div style={{ marginTop: 80 }}>
 			<h2>Transactions</h2>
 
 			<input
@@ -50,17 +38,23 @@ export default function TransactionsTable() {
 						<th>Category</th>
 						<th>Amount</th>
 						<th>Note</th>
+						<th>Actions</th>
 					</tr>
 				</thead>
 
 				<tbody>
-					{transactions.map((t) => (
+					{filteredTransactions.map((t) => (
 						<tr key={t.id}>
 							<td>{new Date(t.date).toLocaleDateString()}</td>
 							<td>{t.type}</td>
 							<td>{t.category}</td>
 							<td>{t.amount}</td>
 							<td>{t.note}</td>
+							<td>
+								<button onClick={() => remove(t.id)}>
+									Delete
+								</button>
+							</td>
 						</tr>
 					))}
 				</tbody>

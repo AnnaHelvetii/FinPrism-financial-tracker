@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
 	PieChart,
 	Pie,
@@ -8,34 +7,24 @@ import {
 	Tooltip,
 	ResponsiveContainer
 } from "recharts";
+import { useTransactions } from "@/context/TransactionsContext";
 
-const API_URL = "http://localhost:5174";
-
-const COLORS = [
-	"#ef4444",
-	"#f97316",
-	"#eab308",
-	"#22c55e",
-	"#3b82f6",
-	"#8b5cf6"
-];
+const COLORS = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#3b82f6", "#8b5cf6"];
 
 export default function CategoryPieChart() {
-	const [data, setData] = useState<any[]>([]);
+	const { transactions } = useTransactions();
+	const dataMap: Record<string, number> = {};
 
-	useEffect(() => {
-		const token = localStorage.getItem("token");
-		if (!token) return;
+	transactions.forEach(t => {
+		if (t.type === "expense") {
+			dataMap[t.category] = (dataMap[t.category] || 0) + t.amount;
+		}
+	});
 
-		fetch(`${API_URL}/transactions/categories`, {
-			headers: {
-				Authorization: `Bearer ${token}`
-			},
-			cache: "no-store"
-		})
-			.then(res => res.json())
-			.then(setData);
-	}, []);
+	const data = Object.entries(dataMap).map(([name, value]) => ({
+		name,
+		value
+	}));
 
 	return (
 		<div style={{ width: "100%", height: 350 }}>
@@ -50,7 +39,7 @@ export default function CategoryPieChart() {
 						outerRadius={120}
 						label
 					>
-						{data.map((entry, index) => (
+						{data.map((_, index) => (
 							<Cell
 								key={index}
 								fill={COLORS[index % COLORS.length]}

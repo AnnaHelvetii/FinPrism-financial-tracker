@@ -3,8 +3,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import { prisma } from "./lib/prisma";
-import jwt, { SignOptions } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { authenticate } from "./middleware/auth";
+import { createTransactionSchema, updateTransactionSchema } from "./schemas/transaction.schema";
 
 dotenv.config();
 
@@ -99,7 +100,15 @@ const PORT = process.env.PORT || 5174;
 
 app.post("/transactions", authenticate, async (req, res) => {
 	try {
-		const { amount, type, category, note, date } = req.body;
+		const parsed = createTransactionSchema.safeParse(req.body);
+
+		if (!parsed.success) {
+			return res.status(400).json({
+				error: parsed.error.flatten()
+			});
+		}
+
+		const { amount, type, category, note, date } = parsed.data;
 
 		if (!amount || !type || !category) {
 			return res.status(400).json({ message: "Missing required fields" });
@@ -253,6 +262,66 @@ app.get("/transactions/categories", authenticate, async (req, res) => {
 		}));
 
 		res.json(result);
+
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Server error" });
+	}
+});
+
+app.delete("/transactions/:id", authenticate, async (req, res) => {
+	try {
+		const id = req.params.id as string;;
+
+		const transaction = await prisma.transaction.findUnique({
+			where: { id }
+		});
+
+		if (!transaction || transaction.userId !== req.user!.userId) {
+			return res.status(404).json({ message: "Transaction not found" });
+		}
+
+		await prisma.transaction.delete({
+			where: { id }
+		});
+
+		res.json({ message: "Transaction deleted" });
+
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Server error" });
+	}
+});
+
+app.put("/transactions/:id", authenticate, async (req, res) => {
+	try {
+		const id = req.params.id as string;
+		const { amount, category, note, type } = req.body;
+
+		const transaction = await prisma.transaction.findUnique({
+			where: { id }
+		});
+
+		if (!transaction || transaction.userId !== req.user!.userId) {
+			return res.status(404).json({ message: "Transaction not found" });
+		}
+
+		const parsed = updateTransactionSchema.safeParse(req.body);
+
+		if (!parsed.success) {
+			return res.status(400).json({
+				error: parsed.error.flatten()
+			});
+		}
+
+		const data = parsed.data;
+
+		const updated = await prisma.transaction.update({
+			where: { id },
+			data
+		});
+
+		res.json(updated);
 
 	} catch (error) {
 		console.error(error);

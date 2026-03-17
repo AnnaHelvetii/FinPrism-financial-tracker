@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
 	LineChart,
 	Line,
@@ -11,41 +10,23 @@ import {
 	ResponsiveContainer,
 	Legend
 } from "recharts";
-
-type ChartData = {
-	month: string;
-	income: number;
-	expense: number;
-};
-
-const API_URL = "http://localhost:5174";
+import { useTransactions } from "@/context/TransactionsContext";
 
 export default function FinanceChart() {
-	const [data, setData] = useState<ChartData[]>([]);
+	const { summary } = useTransactions();
 
-	useEffect(() => {
-		const token = localStorage.getItem("token");
-		if (!token) return;
+	const data = Object.entries(summary)
+		.map(([month, val]: any) => ({
+			month,
+			income: val.income,
+			expense: val. expense
+		}))
+		.sort((a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month));
 
-		fetch(`${API_URL}/transactions/summary`, {
-			headers: {
-				Authorization: `Bearer ${token}`
-			},
-			cache: "no-store"
-		})
-			.then(res => res.json())
-			.then(result => {
-				const chartData = Object.entries(result).map(
-					([month, values]: any) => ({
-						month,
-						income: values.income,
-						expense: values.expense
-					})
-				);
-
-				setData(chartData);
-			});
-	}, []);
+	const monthOrder = [
+		'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+		'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+	];
 
 	return (
 		<div style={{ width: "100%", height: 400 }}>
@@ -54,10 +35,8 @@ export default function FinanceChart() {
 			<ResponsiveContainer>
 				<LineChart data={data}>
 					<CartesianGrid strokeDasharray="4 4" />
-
 					<XAxis dataKey="month" />
 					<YAxis />
-
 					<Tooltip />
 					<Legend />
 

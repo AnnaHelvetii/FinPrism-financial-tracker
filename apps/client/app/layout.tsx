@@ -1,4 +1,5 @@
 import DashboardLayout from "@/components/DashboardLayout";
+import { TransactionsProvider } from "@/context/TransactionsContext";
 
 export default function RootLayout({
 	children,
@@ -8,9 +9,11 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body>
-				<DashboardLayout>
-					{children}
-				</DashboardLayout>
+				<TransactionsProvider>
+					<DashboardLayout>
+						{children}
+					</DashboardLayout>
+				</TransactionsProvider>
 			</body>
 		</html>
 	)
