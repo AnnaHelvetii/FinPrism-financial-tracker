@@ -1,6 +1,7 @@
 "use client";
 
 import Sidebar from "./Sidebar";
+import { Toaster } from "react-hot-toast";
 
 export default function DashboardLayout({
 	children
@@ -20,6 +21,13 @@ export default function DashboardLayout({
 				}}
 			>
 				{children}
+
+				<Toaster
+					position="top-right"
+					toastOptions={{
+						duration: 3000
+					}}
+				/>
 			</main>
 		</div>
 	);

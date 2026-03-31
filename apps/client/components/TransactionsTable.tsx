@@ -5,7 +5,7 @@ import { useTransactions } from "@/context/TransactionsContext";
 
 export default function TransactionsTable() {
 	const [month, setMonth] = useState("");
-	const { transactions, remove, loading, error } = useTransactions();
+	const { transactions, remove, loading } = useTransactions();
 
 	const filteredTransactions = month
 		? transactions.filter(t => t.date.startsWith(month))
@@ -13,10 +13,6 @@ export default function TransactionsTable() {
 
 	if (loading) {
 		return <div>Loading...</div>;
-	}
-
-	if (error) {
-		return <div style={{ color: "red" }}>{error}</div>;
 	}
 
 	return (

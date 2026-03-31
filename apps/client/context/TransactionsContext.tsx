@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useMemo } from "react";
 import { getTransactions, createTransaction, deleteTransaction } from "@/lib/api";
+import toast from "react-hot-toast";
 
 type Transaction = {
 	id: string;
@@ -27,7 +28,6 @@ type ContextType = {
 	add: (data: Omit<Transaction, "id" | "date">) => Promise<void>;
 	remove: (id: string) => Promise<void>;
 	loading: boolean;
-	error: string | null;
 };
 
 const TransactionsContext = createContext<ContextType | null>(null);
@@ -87,9 +87,10 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
 
 		try {
 			await createTransaction(data);
+			toast.success('Транзакция добавлена');
 		} catch (err) {
 			setTransactions(prev => prev.filter(t => t.id !== tempTx.id));
-			setError("Не удалось добавить транзакцию");
+			toast.error('Не удалось добавить транзакцию');
 		}
 	}
 
@@ -99,9 +100,10 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
 
 		try {
 			await deleteTransaction(id);
+			toast.success('Транзакция добавлена');
 		} catch (err) {
 			setTransactions(prev);
-			setError("Не удалось удалить транзакцию");
+			toast.error('Не удалось добавить транзакцию');
 		}
 	}
 
@@ -112,7 +114,7 @@ export function TransactionsProvider({ children }: { children: React.ReactNode }
 
 	return (
 		<TransactionsContext.Provider
-			value={{ transactions, summary, load, add, remove, loading, error }}
+			value={{ transactions, summary, load, add, remove, loading }}
 		>
 			{children}
 		</TransactionsContext.Provider>
